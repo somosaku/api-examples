@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Aku JS API Example</title>
+        <script language="JavaScript" type="text/javascript"
+            src="http://kjur.github.io/jsrsasign/jsrsasign-latest-all-min.js">
+        </script>
+        <script language="JavaScript" type="text/javascript">
+            const URL_TOKEN = "https://devpanel.aku.mx/api/getToken"
+            const URL_USERS = "https://devpanel.aku.mx/api/updateUsers"
+            const API_KEY = "my_api_key"
+            const API_SECRET = "my_api_secret"
+
+            document.addEventListener("DOMContentLoaded", function(){
+                //JWT headers
+                var oHeader = {typ:"JWT",alg: "HS256"};
+                var sHeader = JSON.stringify(oHeader);
+
+                //Obtain Token
+                var sPayload = { api_key: API_KEY};
+                var sJWS = KJUR.jws.JWS.sign("HS256", sHeader, JSON.stringify(sPayload), API_SECRET);
+                var access_token = { company : "empresa_chida", access_code: sJWS }
+                var access_token_bas64 = btoa(JSON.stringify(access_token));
+
+                var http = new XMLHttpRequest();
+                http.open("POST", URL_TOKEN, false);
+                http.setRequestHeader("X-Access-Token",access_token_bas64)
+                http.send();
+                token = JSON.parse(http.responseText).token
+                
+                //Update Info
+                var company_data = [{ 
+                            name: 'Maria Eugenia',
+                            surname: 'Fernandez Vazquez', 
+                            phone: '5512312300',
+                            email: 'maria@empresa.mx', 
+                            net_salary: 10000.0
+                            },
+                            {
+                            name: 'Juan Carlos', 
+                            surname: 'Rodriguez Mora', 
+                            phone: '2278978900', 
+                            email: 'juan@empresa.mx', 
+                            net_salary: 10000.0
+                        }]
+                var sPayload = { data: JSON.stringify(company_data)};
+                var sJWS = KJUR.jws.JWS.sign("HS256", sHeader, JSON.stringify(sPayload), API_SECRET);
+
+                var http = new XMLHttpRequest();
+                http.open("POST", URL_USERS, false);
+                http.setRequestHeader("X-Access-Token",token)
+                http.send(sJWS);
+                document.getElementById("response").innerHTML = "<h1>Response</h1>"+ http.responseText
+            });
+            
+            
+            
+        </script>
+    </head>
+    <body>
+        <div id="response">
+            
+        </div>
+    </body>
+</html>
